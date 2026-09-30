@@ -1,0 +1,7 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Mark">
+<rect width="40" height="40" rx="11.2" fill="#FF6B2C"/>
+<rect id="Bag" x="9.16667" y="16.6667" width="21.6667" height="17.5" rx="4.16667" fill="white"/>
+<path id="Handle" d="M13.3333 18.3333C13.3333 14.6667 16.3333 11.6667 20 11.6667C23.6667 11.6667 26.6667 14.6667 26.6667 18.3333" stroke="white" stroke-width="2.16667" stroke-linecap="round"/>
+</g>
+</svg>

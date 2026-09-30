@@ -1,0 +1,22 @@
+/*
+ * Journal — src/index.css
+ *
+ * Before: Vite starter styles, then replaced by the user with just `@import "tailwindcss";`.
+ *
+ * 2026-09-26 (Claude): Added a Tailwind @theme with design tokens from Figma — Inter font, brand orange,
+ *   ink/muted/subtle text colours, line (border) and danger. Use classes like bg-brand, text-ink, border-line.
+ */
+
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand: #ff6b2c;
+  --color-brand-hover: #f05a1a;
+  --color-ink: #111827;
+  --color-muted: #6b7280;
+  --color-subtle: #9ca3af;
+  --color-line: #e5e7eb;
+  --color-danger: #dc2626;
+}

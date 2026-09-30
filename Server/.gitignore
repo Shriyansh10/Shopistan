@@ -1,0 +1,10 @@
+# Journal — Server/.gitignore
+#
+# 2026-09-30 (Claude): Created. The server had no .gitignore, so .env (Resend API key, JWT secrets),
+#   node_modules and dist were committed and GitHub push protection blocked the push.
+
+node_modules
+dist
+.env
+*.log
+.DS_Store
