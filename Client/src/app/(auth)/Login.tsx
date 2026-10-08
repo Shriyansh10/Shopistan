@@ -11,17 +11,28 @@
  *   forgot link has no page behind it. On success navigates to "/" (no home route exists yet).
  *
  * 2026-09-30 (Claude): On success now navigates to /profile instead of "/" (which just bounced back here).
+ *
+ * 2026-10-08 (Claude): After login, refreshes the shared auth state (useAuth().refresh) so the header shows the
+ *   user, then goes to ?next= (the page that asked for login, e.g. /cart) or "/" if there is none. next must be
+ *   a same-site path ("/..." but not "//..."), so a crafted link can't send users to another website. Shows the
+ *   message RequireAuth passes in router state ("Please sign in to continue.") above the form.
  */
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
 import AuthLayout from "./AuthLayout";
 import { loginSchema, type LoginInput } from "../../schemas/auth.schema";
 import { loginUser } from "../../services/auth.service";
 import { toApiError } from "../../lib/api_error";
 import { LIMITS } from "../../lib/limits";
+import { useAuth } from "../../context/auth.context";
+
+// only allow paths on this site: "/cart" yes, "//evil.com" or "https://evil.com" no
+function safeNext(next: string | null) {
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+}
 
 const inputClass =
   "w-full rounded-[10px] border border-line bg-white px-4 py-3.5 text-[15px] leading-[1.2] text-ink placeholder:text-muted outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20 aria-invalid:border-danger aria-invalid:focus:ring-danger/20";
@@ -37,6 +48,10 @@ function FieldError({ message }: { message?: string }) {
 
 export default function Login() {
   const navigate = useNavigate();
+  const { refresh } = useAuth();
+  const [searchParams] = useSearchParams();
+  const next = safeNext(searchParams.get("next"));
+  const notice = (useLocation().state as { message?: string } | null)?.message;
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -53,7 +68,8 @@ export default function Login() {
   const onSubmit = async (data: LoginInput) => {
     try {
       await loginUser(data);
-      navigate("/profile", { replace: true });
+      await refresh(); // load the user into the shared auth state before leaving
+      navigate(next, { replace: true });
     } catch (err) {
       setError("root", { message: toApiError(err).message });
     }
@@ -71,6 +87,12 @@ export default function Login() {
           </h2>
           <p className="text-[15px] leading-[1.45] text-muted">Enter your details to continue.</p>
         </div>
+
+        {notice && (
+          <p role="status" className="rounded-[10px] bg-brand/10 px-4 py-3 text-sm text-ink">
+            {notice}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">

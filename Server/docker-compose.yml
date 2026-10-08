@@ -1,4 +1,10 @@
-version: '2'
+# Journal — Server/docker-compose.yml
+#
+# Before: MongoDB (mongo:latest, port 27017) + mongoclient web UI (port 3300) on a bridge network,
+#   with no volume, so each `docker compose down` + `up` started an empty database.
+#
+# 2026-10-05 (Claude): Mounted a named volume (mongodb_data) at /data/db so data survives container
+#   re-creation; restored the previous shopistan data into it. Removed the obsolete `version` key.
 
 networks:
   mongodb_net:
@@ -18,6 +24,8 @@ services:
         - mongodb_net
       ports:
         - 27017:27017
+      volumes:
+        - mongodb_data:/data/db
     mongoclient:
       image: mongoclient/mongoclient:latest
       container_name: mongoclient
@@ -28,3 +36,5 @@ services:
         - mongodb_net
       ports:
         - 3300:3000
+volumes:
+  mongodb_data:

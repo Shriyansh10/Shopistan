@@ -19,6 +19,8 @@
  *   NOTE: the server has no /auth/login route yet; this will 404 until it's added.
  *
  * 2026-09-30 (Claude): Added getProfile() — GET /auth/profile (needs the accessToken cookie).
+ *
+ * 2026-10-08 (Claude): Added logoutUser() — POST /auth/logout (server clears both auth cookies).
  */
 
 import type { LoginInput, RegisterInput } from "../schemas/auth.schema";
@@ -63,5 +65,10 @@ export type Profile = {
 
 export async function getProfile() {
   const res = await api.get<ApiSuccess<Profile>>("/auth/profile");
+  return res.data;
+}
+
+export async function logoutUser() {
+  const res = await api.post<ApiSuccess<unknown>>("/auth/logout");
   return res.data;
 }

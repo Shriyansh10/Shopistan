@@ -2,9 +2,11 @@
 #
 # 2026-09-30 (Claude): Created. The server had no .gitignore, so .env (Resend API key, JWT secrets),
 #   node_modules and dist were committed and GitHub push protection blocked the push.
+# 2026-10-05 (Claude): Ignored data/ (Kaggle Amazon CSVs, ~350MB) used by the seed script.
 
 node_modules
 dist
 .env
 *.log
 .DS_Store
+data/

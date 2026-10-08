@@ -13,6 +13,7 @@
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.route.js";
+import dashboardRoutes from "./routes/dashboard.route.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware.js";
 import cookieParser from "cookie-parser";
 
@@ -34,6 +35,7 @@ app.get("/api/health", (req: Request, res: Response) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/dashboard", dashboardRoutes); 
 
 // must come after all routes
 app.use(notFoundHandler);

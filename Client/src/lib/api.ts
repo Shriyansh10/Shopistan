@@ -12,6 +12,11 @@
  * 2026-09-30 (Claude): Typed the error interceptor. `error` is now AxiosError (axios declares it as `any`,
  *   so nothing was checked). Added `_retry?: boolean` to InternalAxiosRequestConfig with module
  *   augmentation. error.config can be undefined, so the 401 branch checks for it first. Behaviour unchanged.
+ *
+ * 2026-10-08 (Claude): Removed the forced `window.location.href = "/auth/login"` when the token refresh fails.
+ *   Guests browse public pages, and the session check (GET /auth/profile) runs for everyone, so the redirect
+ *   bounced every guest to login. A failed refresh now just rejects; the RequireAuth route guard decides
+ *   when login is needed (cart, wishlist, settings).
  */
 
 import axios, { type AxiosError } from "axios";
@@ -63,10 +68,7 @@ api.interceptors.response.use(
         await refreshPromise;
         return api(originalRequest);
       } catch (err) {
-        // redirect to login page or handle the error as needed
-        if (!window.location.pathname.startsWith("/auth/")) {
-          window.location.href = "/auth/login";
-        }
+        // refresh failed → not logged in. No redirect here: guests may browse; RequireAuth guards protected pages
         return Promise.reject(err);
       }
     }

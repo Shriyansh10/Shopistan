@@ -10,7 +10,8 @@
     "dev": "tsc-watch --onSuccess \"node dist/index\"",
     "studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "seed:amazon": "tsc -p . && node dist/scripts/seed-amazon.js"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +21,7 @@
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "csv-parse": "^7.0.3",
     "dotenv": "^18.0.3",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",

@@ -5,6 +5,9 @@
  *
  * 2026-09-26 (Claude): Added a Tailwind @theme with design tokens from Figma — Inter font, brand orange,
  *   ink/muted/subtle text colours, line (border) and danger. Use classes like bg-brand, text-ink, border-line.
+ *
+ * 2026-10-08 (Claude): Added success (discount text) and surface (light grey section background) from
+ *   design/department-home.html.
  */
 
 @import "tailwindcss";
@@ -19,4 +22,6 @@
   --color-subtle: #9ca3af;
   --color-line: #e5e7eb;
   --color-danger: #dc2626;
+  --color-success: #16a34a;
+  --color-surface: #f9fafb;
 }

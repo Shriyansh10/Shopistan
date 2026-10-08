@@ -5,10 +5,12 @@
  *   Cart, Order, OrderItem, Review).
  *
  * 2026-09-26 (Claude): Updated import paths after renaming model files from *.models.ts to *.model.ts.
+ * 2026-10-05 (Claude): Exported the new Department model.
  */
 
 export { default as User } from "./user.model.js";
 export { default as UserDetail } from "./userDetail.model.js";
+export { default as Department } from "./department.model.js";
 export { default as Category } from "./category.model.js";
 export { default as Product } from "./product.model.js";
 export { default as Wishlist } from "./wishlist.model.js";
