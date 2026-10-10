@@ -10,12 +10,16 @@
  *     user to login; on any other page it stays put.
  *   Cart and wishlist are plain links; RequireAuth asks guests to sign in when they open them.
  *   Search is still visual only.
+ *
+ * 2026-10-10 (Claude): Cart icon shows a badge with the total units in the cart (useCartCount → GET /cart/count),
+ *   as in the Figma cart/wishlist frames. Hidden at 0 and for guests; shows "99+" above 99.
  */
 
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import mark from "../assets/brand/mark.svg";
 import { useAuth } from "../context/auth.context";
+import { useCartCount } from "../context/cart.context";
 
 const PROTECTED_PREFIXES = ["/cart", "/wishlist", "/settings"];
 
@@ -142,6 +146,8 @@ function AccountArea() {
 }
 
 export default function Header() {
+  const { count: cartCount } = useCartCount();
+
   return (
     <header className="sticky top-0 z-10 border-b border-line bg-white">
       <div className="mx-auto flex h-18 max-w-300 items-center gap-6 px-4 xl:px-0">
@@ -161,8 +167,21 @@ export default function Header() {
           <Link to="/wishlist" aria-label="Wishlist" className={iconButtonClass}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><path d="M12 20s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10c0 5.65-7 10-7 10Z" /></svg>
           </Link>
-          <Link to="/cart" aria-label="Cart" className={iconButtonClass}>
+          <Link
+            to="/cart"
+            aria-label={cartCount > 0 ? `Cart, ${cartCount} ${cartCount === 1 ? "item" : "items"}` : "Cart"}
+            className={`relative ${iconButtonClass}`}
+          >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="13" rx="3" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
+            {/* badge: total units in the cart (hidden when 0 / for guests) */}
+            {cartCount > 0 && (
+              <span
+                aria-hidden="true"
+                className="absolute -top-1.5 -right-1.5 grid h-4.5 min-w-4.5 place-items-center rounded-[9px] bg-brand px-1 text-[10px] leading-none font-bold text-white"
+              >
+                {cartCount > 99 ? "99+" : cartCount}
+              </span>
+            )}
           </Link>
           <AccountArea />
         </div>

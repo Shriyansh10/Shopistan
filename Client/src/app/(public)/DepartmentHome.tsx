@@ -14,11 +14,16 @@
  *
  * 2026-10-08 (Claude): Brand and Header moved to components/Header.tsx (shared with other pages; the header now
  *   shows Guest/Sign in or the logged-in user, and cart/wishlist link to their pages). Imported from there.
+ *
+ * 2026-10-09 (Claude): ProductCard, SkeletonCard and Footer moved to components/ (shared with the product page);
+ *   the usd formatter moved to lib/format.ts. Product cards now link to /product/:id.
  */
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import Header, { Brand } from "../../components/Header";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import { ProductCard, SkeletonCard } from "../../components/ProductCard";
 import { toApiError } from "../../lib/api_error";
 import {
   getCategories,
@@ -31,93 +36,6 @@ import {
 
 const PAGE_SIZE = 12;
 const VISIBLE_CHIPS = 8;
-
-const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
-
-// ---------- Small pieces ----------
-
-function ProductCard({ product, categoryName }: { product: Product; categoryName: string }) {
-  // price is the original price; discount is % off it
-  const selling = product.price * (1 - product.discount / 100);
-
-  return (
-    <article className="flex flex-col rounded-2xl border border-line bg-white p-3 transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(17,24,39,0.08)]">
-      <div className="grid aspect-square place-items-center overflow-hidden rounded-[10px] bg-gray-100 p-4">
-        {/* multiply blends the product photo's white background into the grey tile */}
-        <img src={product.image} alt="" loading="lazy" className="max-h-full max-w-full object-contain mix-blend-multiply" />
-      </div>
-      <div className="flex flex-col gap-2 px-1 pt-3.5 pb-1">
-        <span className="text-xs text-subtle">{categoryName}</span>
-        <h3 className="line-clamp-2 min-h-10 text-[15px] leading-[1.35] font-medium" title={product.name}>
-          {product.name}
-        </h3>
-        <div className="flex flex-wrap items-baseline gap-x-2">
-          <span className="text-lg font-bold">{usd.format(selling)}</span>
-          {product.discount > 0 && (
-            <>
-              <span className="text-[13px] text-subtle line-through">{usd.format(product.price)}</span>
-              <span className="text-[13px] font-semibold text-success">{product.discount}% off</span>
-            </>
-          )}
-        </div>
-        {product.rating > 0 && (
-          <div className="flex items-center gap-1.5 text-[13px] text-muted">
-            <span className="text-amber-500">★</span>
-            {product.rating.toFixed(1)}
-          </div>
-        )}
-      </div>
-    </article>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <div className="flex animate-pulse flex-col gap-3 rounded-2xl border border-line bg-white p-3">
-      <div className="aspect-square rounded-[10px] bg-gray-100" />
-      <div className="h-3 w-1/2 rounded bg-gray-100" />
-      <div className="h-4 w-full rounded bg-gray-100" />
-      <div className="h-5 w-1/3 rounded bg-gray-100" />
-    </div>
-  );
-}
-
-function Footer() {
-  const columns = [
-    { title: "Shop", items: ["New arrivals", "Best sellers", "Deals", "Gift cards"] },
-    { title: "Help", items: ["Track order", "Returns", "Shipping", "Contact us"] },
-    { title: "Company", items: ["About", "Careers", "Press", "Privacy"] },
-  ];
-
-  return (
-    <footer className="bg-ink pt-18 pb-10 text-subtle">
-      <div className="mx-auto max-w-300 px-4 xl:px-0">
-        <div className="grid grid-cols-2 gap-12 md:grid-cols-[2fr_1fr_1fr_1fr]">
-          <div className="col-span-2 text-white md:col-span-1">
-            <Brand />
-            <p className="mt-4 text-sm text-subtle">Everyday essentials, delivered fast across India.</p>
-          </div>
-          {columns.map((col) => (
-            <div key={col.title}>
-              <h4 className="mb-4 text-sm font-semibold text-white">{col.title}</h4>
-              {col.items.map((item) => (
-                <p key={item} className="mb-3 text-sm">{item}</p>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-gray-800 pt-7 text-[13px]">
-          <span>© 2026 Shopistan. All rights reserved.</span>
-          <div className="flex gap-2">
-            {["VISA", "UPI", "MCARD", "COD"].map((p) => (
-              <span key={p} className="grid h-6.5 place-items-center rounded-md bg-gray-800 px-3 text-[11px] font-semibold text-gray-300">{p}</span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
 
 // ---------- Page ----------
 
@@ -225,7 +143,7 @@ export default function DepartmentHome() {
 
       {/* Department tabs */}
       <nav aria-label="Departments" className="border-b border-line bg-white">
-        <div className="mx-auto flex max-w-300 gap-7 overflow-x-auto px-4 [scrollbar-width:none] xl:px-0">
+        <div className="mx-auto flex max-w-300 gap-7 overflow-x-auto px-4 scrollbar:none xl:px-0">
           {departments?.map((d) => (
             <button
               key={d._id}

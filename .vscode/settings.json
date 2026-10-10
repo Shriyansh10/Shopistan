@@ -1,0 +1,10 @@
+// Journal — .vscode/settings.json
+//
+// 2026-10-09 (Claude): Created. Opens .css files in "Tailwind CSS" mode (Tailwind CSS IntelliSense extension)
+//   instead of plain CSS, so Tailwind v4 directives like @theme / @import "tailwindcss" stop showing
+//   "Unknown at rule" warnings, and token autocomplete works.
+{
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
+}

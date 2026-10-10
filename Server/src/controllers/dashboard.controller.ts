@@ -7,6 +7,9 @@
  *
  * 2026-10-08 (Claude): Added toInt() and clamped the products query: limit 1–50 (default 10), offset ≥ 0
  *   (default 0); invalid values fall back to the default. Products `data` is now { products, total }.
+ *
+ * 2026-10-09 (Claude): toInt() moved to utils/query.ts; the products handler now uses getPagination() from
+ *   there (same rules), shared with the product-reviews endpoint.
  */
 
 import type { Request, Response } from "express";
@@ -15,21 +18,14 @@ import {
   getAllCategoriesByDepartmentIdService,
   getAllProductsByCategoryIdService,
 } from "../services/dashboard.service.js";
-
-// Parses a query value as an integer ≥ min; anything else (missing, "abc", "-5", ?x=1&x=2) gives the fallback
-const toInt = (value: unknown, fallback: number, min: number) => {
-  const n = typeof value === "string" ? Number(value) : NaN;
-  return Number.isInteger(n) && n >= min ? n : fallback;
-};
+import { badRequest } from "../utils/api-error.js";
+import { sendCreated } from "../utils/api_response.js";
+import { getPagination } from "../utils/query.js";
 
 const getAllDepartmentsController = async (req: Request, res: Response) => {
   const result = await getAllDepartmentsService();
 
-  return res.status(200).json({
-    success: true,
-    message: "Departments fetched successfully",
-    data: result,
-  });
+  return sendCreated(res, "Departments fetched successfully", result);
 };
 
 const getAllCategoriesByDepartmentIdController = async (
@@ -39,18 +35,11 @@ const getAllCategoriesByDepartmentIdController = async (
   const { id } = req.params;
 
   if (!id || typeof id !== "string") {
-    return res.status(400).json({
-      success: false,
-      message: "Department ID is required",
-    });
+    throw badRequest("Department ID is required");
   }
 
   const result = await getAllCategoriesByDepartmentIdService(id);
-  return res.status(200).json({
-    success: true,
-    message: "Categories fetched successfully",
-    data: result,
-  });
+  return sendCreated(res, "Categories fetched successfully", result);
 };
 
 const getAllProductsByCategoryIdController = async ( 
@@ -61,22 +50,13 @@ const getAllProductsByCategoryIdController = async (
     const { categoryId } = req.params;
 
     if (!categoryId || typeof categoryId !== "string") {
-        return res.status(400).json({
-            success: false,
-            message: "Category ID is required",
-        });
+        throw badRequest("Category ID is required");
     }
 
-    // limit: 1–50 (default 10), offset: 0 or more (default 0); bad values fall back to the default
-    const limit = Math.min(toInt(req.query.limit, 10, 1), 50);
-    const offset = toInt(req.query.offset, 0, 0);
+    const { offset, limit } = getPagination(req.query);
 
     const result = await getAllProductsByCategoryIdService(categoryId, offset, limit);
-    return res.status(200).json({
-        success: true,
-        message: "Products fetched successfully",
-        data: result,
-    });
+    return sendCreated(res, "Products fetched successfully", result);
 };
 
 export {

@@ -10,6 +10,9 @@
  * 2026-09-26 (Claude): Converted from a class with static methods to plain named functions:
  *   sendSuccess(), sendOk(), sendCreated(). Same behaviour and response shape.
  *   Usage: import { sendCreated } from "../utils/api_response.js"; sendCreated(res, "User registered", user);
+ *
+ * 2026-10-09 (Claude): Added sendDeleted() for DELETE endpoints — 200 with the same { success, message, data }
+ *   shape. Usage: sendDeleted(res, "Product removed from wishlist");
  */
 
 import type { Response } from "express";
@@ -28,4 +31,8 @@ export function sendOk<T>(res: Response, message: string, data: T | null = null)
 
 export function sendCreated<T>(res: Response, message: string, data: T | null = null) {
   return sendSuccess(res, 201, message, data);
+}
+
+export function sendDeleted<T>(res: Response, message: string, data: T | null = null) {
+  return sendSuccess(res, 200, message, data);
 }
