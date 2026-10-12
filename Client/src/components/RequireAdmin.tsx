@@ -1,0 +1,30 @@
+import { Navigate, Outlet, useLocation } from "react-router";
+import { useAuth } from "../context/auth.context";
+
+export default function RequireAdmin() {
+  const { status, user } = useAuth();
+  const location = useLocation();
+
+  if (status === "checking") {
+    return (
+      <div className="grid min-h-svh place-items-center font-sans text-sm text-muted">Loading...</div>
+    );
+  }
+
+  if (status === "guest") {
+    const next = encodeURIComponent(location.pathname + location.search);
+    return (
+      <Navigate
+        to={`/auth/login?next=${next}`}
+        replace
+        state={{ message: "Please sign in to continue." }}
+      />
+    );
+  }
+
+  if (user?.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
