@@ -1,8 +1,24 @@
+<!--
+Journal — Readme.md
+Before: project README — overview, features, stack, project layout, local setup (MongoDB, server, dataset seed,
+  client), environment variables, admin access, how auth / orders / prices / search work, API table, limitations.
+2026-10-12 (Claude): Added the live links (site, API, health check) and a Deployment section (Vercel, Render +
+  Docker, MongoDB Atlas, DNS on one domain, Razorpay webhook, Resend). Server env table now lists CLIENT_URL,
+  EMAIL_FROM and OTP_DEV_RECIPIENT, and notes PORT. Removed design/ from the layout (it isn't in the repo).
+2026-10-13 (Claude): Added the demo video link (Google Drive) next to the live links.
+-->
+
 # Shopistan
 
 An e-commerce store built from scratch: a React storefront and an Express + MongoDB API. Shoppers browse departments, search products, keep a wishlist and cart, check out with cash on delivery or Razorpay, and track their orders. Admins manage the catalog and process orders from the same app.
 
 The catalog comes from a real dataset (Amazon products, 2023), so there are thousands of products to browse and search instead of a handful of placeholders.
+
+**Live:** [shopistan.space](https://shopistan.space) · API: [api.shopistan.space](https://api.shopistan.space/api/health) (`/api/health` returns "Server is healthy")
+
+**Demo video:** [watch the walkthrough](https://drive.google.com/file/d/1gQa-rtZ6G3UIVM7qviKbfBanrTFiCPdJ/view) (features, APIs, database, auth flow and deployment)
+
+The API runs on Render's free tier, which sleeps when idle, so the first request after a quiet spell can take up to a minute.
 
 ## What it does
 
@@ -42,19 +58,19 @@ Shopistan/
 │       ├── services/        one file per API area (auth, cart, order, admin…)
 │       ├── schemas/         Zod schemas for forms
 │       └── lib/             axios instance, formatting, small helpers
-├── Server/                  Express API
-│   ├── src/
-│   │   ├── routes/          URL → middleware → controller
-│   │   ├── controllers/     read the request, call a service, send the response
-│   │   ├── services/        business logic and database queries
-│   │   ├── models/          Mongoose schemas
-│   │   ├── dto/             Zod schemas for request bodies and query strings
-│   │   ├── middleware/      auth, admin check, validation, error handler
-│   │   ├── utils/           errors, responses, JWT, pagination, prices
-│   │   └── scripts/         dataset seeder and one-off maintenance scripts
-│   ├── Data/amazon/         dataset CSVs (not committed, see below)
-│   └── docker-compose.yml   MongoDB + a web UI for it
-└── design/                  HTML design references
+└── Server/                  Express API
+    ├── src/
+    │   ├── routes/          URL → middleware → controller
+    │   ├── controllers/     read the request, call a service, send the response
+    │   ├── services/        business logic and database queries
+    │   ├── models/          Mongoose schemas
+    │   ├── dto/             Zod schemas for request bodies and query strings
+    │   ├── middleware/      auth, admin check, validation, error handler
+    │   ├── utils/           errors, responses, JWT, pagination, prices
+    │   └── scripts/         dataset seeder and one-off maintenance scripts
+    ├── Data/amazon/         dataset CSVs (not committed, see below)
+    ├── Dockerfile           production image (used by Render)
+    └── docker-compose.yml   local MongoDB + a web UI for it
 ```
 
 Every request on the server goes the same way: **route → middleware (auth, validation) → controller → service → model**. Errors are thrown as typed `ApiError`s and turned into JSON by one error handler, so every response has the same shape:
@@ -111,17 +127,18 @@ pnpm dev                    # http://localhost:5173
 
 | Variable | What it's for |
 |---|---|
-| `port`, `domain`, `mode` | where the server listens; `mode=production` turns on secure cookies and removes the mock gateway |
+| `port`, `domain`, `mode` | where the server listens (hosts like Render set `PORT`, which wins); `mode=production` turns on secure cookies and removes the mock gateway |
+| `CLIENT_URL` | the one address allowed to call the API from a browser (CORS), e.g. `http://localhost:5173` or `https://shopistan.space` |
 | `MONGODB_URI` | e.g. `mongodb://localhost:27017/shopistan` |
 | `RESEND_API_KEY` | sends the sign-up verification codes |
+| `EMAIL_FROM` | OTP sender on a domain verified in Resend, e.g. `Shopistan <no-reply@shopistan.space>`; empty uses Resend's test sender |
+| `OTP_DEV_RECIPIENT` | local development only: every OTP goes to this address (Resend's test sender can only mail your own account). Leave unset in production |
 | `ACCESS_TOKEN_SECRET`, `ACCESS_TOKEN_EXPIRATION` | access token, e.g. `15m` |
 | `REFRESH_TOKEN_SECRET`, `REFRESH_TOKEN_EXPIRATION` | refresh token, e.g. `7d` |
 | `PAYMENT_PROVIDER` | `mock` or `razorpay` |
 | `PAYMENT_SECRET` | signs mock-gateway payments |
 | `RAZORPAY_API_KEY`, `RAZORPAY_API_SECRET` | Razorpay test or live keys |
 | `RAZORPAY_WEBHOOK_SECRET` | the secret you set on the webhook in the Razorpay dashboard |
-
-The server only accepts browser requests from `CLIENT_URL` (default `http://localhost:5173`), so set it if the client runs elsewhere.
 
 **Client (`Client/.env`)**
 
@@ -138,6 +155,27 @@ There's no sign-up for admins. Register normally, then set your role in MongoDB 
 ```js
 db.users.updateOne({ email_id: "you@example.com" }, { $set: { role: "admin" } })
 ```
+
+## Deployment
+
+Everything runs on free tiers:
+
+| Part | Where | Address |
+|---|---|---|
+| Client | Vercel (root directory `Client`, Vite preset) | `https://shopistan.space` (`www` redirects to it) |
+| Server | Render web service, built from `Server/Dockerfile` | `https://api.shopistan.space` |
+| Database | MongoDB Atlas (free M0 cluster) | connection string in Render's environment |
+
+A few things this setup depends on:
+- **One domain for both.** Login cookies are `SameSite=Lax`, so the browser only sends them when the page and the API are on the same site. `shopistan.space` and `api.shopistan.space` are; `*.vercel.app` and `*.onrender.com` aren't, so login only works on the custom domain.
+- **DNS** (GoDaddy): an `A` record for the root and a `CNAME` for `www` pointing at Vercel, and a `CNAME` for `api` pointing at the Render service. Both hosts issue HTTPS certificates automatically.
+- **Environment.** Render gets the server variables above with `mode=production`, `CLIENT_URL=https://shopistan.space` and `PAYMENT_PROVIDER=razorpay` (no `OTP_DEV_RECIPIENT`). Vercel gets `VITE_BACKEND_URL=https://api.shopistan.space`, `VITE_PAYMENT_PROVIDER=razorpay` and the Razorpay key id. Vite bakes these in at build time, so changing one needs a redeploy.
+- **Client routing.** `Client/vercel.json` sends every path to `index.html`, so refreshing `/orders` or a product page works.
+- **Razorpay webhook** at `https://api.shopistan.space/api/webhooks/razorpay` for `order.paid` and `payment.failed`, signed with `RAZORPAY_WEBHOOK_SECRET`.
+- **Email.** For OTPs to reach any address, the domain has to be verified in Resend (its DKIM and SPF records added to DNS) and `EMAIL_FROM` set on Render. Until then, Resend only delivers to the account owner's address.
+- **Data.** Atlas M0 has 512 MB, so it's seeded with a subset (`--per-category 200`) from a laptop by pointing `MONGODB_URI` at Atlas and running the seeder.
+
+Pushing to `main` redeploys both: Render rebuilds the Docker image and Vercel rebuilds the client.
 
 ## How the main pieces work
 
