@@ -26,7 +26,6 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.10.2",
-    "node": "^22.23.3",
     "razorpay": "^2.9.8",
     "resend": "^6.30.0",
     "zod": "^4.6.5"
@@ -38,6 +37,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.6.2",
-    "tsc-watch": "^7.2.1"
+    "tsc-watch": "^7.2.1",
+    "typescript": "~6.0.3"
   }
 }

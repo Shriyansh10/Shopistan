@@ -1,3 +1,15 @@
+/*
+ * Journal — src/services/auth.service.ts
+ *
+ * Before: auth services — register (or refresh an unverified account), send OTP (bcrypt-hashed, 5-minute expiry,
+ *   emailed via Resend from onboarding@resend.dev to a hardcoded address), verify OTP, email/password login, profile
+ *   (incl. role), and issuing / validating / clearing refresh tokens.
+ *
+ * 2026-10-12 (Claude): OTP email no longer goes to a hardcoded address. Sender = EMAIL_FROM (an address on a domain verified
+ *   in Resend; falls back to Resend's test sender onboarding@resend.dev). Recipient = the user's email, unless
+ *   OTP_DEV_RECIPIENT is set — for local development, where Resend's test sender can only mail your own address.
+ */
+
 import type { RegisterType } from "../dto/auth.dto.js";
 import User from "../models/user.model.js";
 import { badRequest, conflict, unauthorized } from "../utils/api-error.js";
@@ -92,8 +104,10 @@ const sendOtpService = async (email_id: string) => {
   console.log(`Sending OTP to email ${email_id}`);
 
   await resend.emails.send({
-    from: "onboarding@resend.dev",
-    to: "shriyansh.agarwal.dev@gmail.com",
+    // production: EMAIL_FROM on a domain verified in Resend. Locally, Resend's test sender only delivers to your
+    // own Resend account email, so OTP_DEV_RECIPIENT redirects every code there.
+    from: process.env.EMAIL_FROM || "onboarding@resend.dev",
+    to: process.env.OTP_DEV_RECIPIENT || email_id,
     subject: "Your OTP Code",
     html: `<p>Your Shopistan's verification OTP code for email ${email_id} is: <strong>${otp}</strong>
     <p>This code will expire in 5 minutes.</p>

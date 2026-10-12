@@ -1,4 +1,12 @@
+# Journal — Server/.dockerignore
+#
+# Before (user): ignored node_modules, dist, .env and Data (with trailing spaces after .env / Data).
+#
+# 2026-10-12 (Claude): Removed the trailing spaces; added *.log. Keeps secrets, local builds and the ~350MB dataset CSVs out
+#   of the Docker build context.
+
 node_modules
 dist
-.env  
-data
+.env
+Data
+*.log
