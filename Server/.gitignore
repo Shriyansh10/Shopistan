@@ -1,6 +1,16 @@
+# Journal — Server/.gitignore
+#
+# Before: ignored node_modules, dist, .env, *.log, .DS_Store and data/.
+#
+# 2026-10-12 (Claude): `data/` matched every folder named data — including src/scripts/data/, so
+#   category-departments.ts (needed by the seed script) was never committed and the Render build failed (TS2307).
+#   Now /data/ and /Data/ only ignore the dataset folder at the root of Server/.
+
 node_modules
 dist
 .env
 *.log
 .DS_Store
-data/
+# the Kaggle dataset CSVs (~350MB) — anchored with / so src/scripts/data/ is NOT ignored
+/data/
+/Data/
